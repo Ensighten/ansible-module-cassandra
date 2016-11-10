@@ -1,0 +1,36 @@
+---
+
+- block:
+
+  - name: add users (as roles)
+    cassandra_role:
+      state: present
+      name: a_user
+      superuser: False
+      enable_login: True
+      password: a_user_password
+
+  - name: add roles
+    cassandra_role:
+      state: present
+      name: x_role
+      superuser: False
+      enable_login: False #so a role can't login
+
+  - name: grant perms to roles
+    cassandra_grant:
+      mode: grant # ["grant", "revoke"]
+      role: x_role
+      permission: all # ["all", "alter", "drop", "select", "modify", "authorise", "describe", "execute"]
+      keyspace: "mykeyspace"
+      all_keyspaces: "False"
+
+  - name: grant roles to users (aka roles to roles)
+    cassandra_grant:
+      mode: grant # ["grant", "revoke"]
+      role: a_user
+      inherit_role: x_role
+
+  login_hosts: localhost
+  login_user: cassandra
+  login_password: cassandra
