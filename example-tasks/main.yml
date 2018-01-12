@@ -22,7 +22,9 @@
       mode: grant # ["grant", "revoke"]
       role: x_role
       permission: all # ["all", "alter", "drop", "select", "modify", "authorise", "describe", "execute"]
-      keyspace: "mykeyspace"
+      keyspace:
+        - mykeyspace1
+        - mykeyspace2
       all_keyspaces: "False"
 
   - name: grant roles to users (aka roles to roles)
