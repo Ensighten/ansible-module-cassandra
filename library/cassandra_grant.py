@@ -24,7 +24,7 @@ options:
       - required if `all_keyspaces` == false
       - ignored if `inherit_role` is set
     required: false
-    default: false
+    default: []
   all_keyspaces:
     description:
       - if true, `on` is ignored and the `what` is granted to all keyspaces
