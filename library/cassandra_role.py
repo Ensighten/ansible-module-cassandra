@@ -21,7 +21,7 @@ options:
     alias: role
   password:
     description:
-      - Set the role's password. Setting password will always elicit a 'change' (even if is the same).
+      - Set the role's password. 
     required: true
   superuser:
     description:
@@ -106,7 +106,11 @@ def role_save(session, check_mode, name, password, can_login, is_superuser):
     do_save(session, existing_role, is_superuser, name, password, can_login)
 
     new_user = get_role(session, name)
-    return bool(new_user != existing_role)
+    
+    if bool(password):
+        return not bool(existing_role)
+    else:
+        return bool(new_user != existing_role)
 
 
 def do_save(session, existing_role, is_superuser, name, password, can_login):
@@ -199,7 +203,7 @@ def main():
 
         else:
             auth_provider = PlainTextAuthProvider(username=login_user, password=login_password)
-            cluster = Cluster(login_hosts, auth_provider=auth_provider, protocol_version=2, port=login_port)
+            cluster = Cluster(login_hosts, auth_provider=auth_provider, protocol_version=3, port=login_port)
         session = cluster.connect()
         session.row_factory = dict_factory
     except Exception, e:
@@ -207,7 +211,11 @@ def main():
             msg="unable to connect to cassandra, check login_user and login_password are correct. Exception message: %s"
                 % e)
 
+    new_role = not bool(get_role(session, name))
+
     if state == "present":
+        if new_role:
+            changed = True
         try:
             changed = role_save(session, module.check_mode, name, password, enable_login, superuser)
         except Exception, e:
@@ -217,7 +225,8 @@ def main():
             changed = role_delete(session, module.check_mode, name)
         except Exception, e:
             module.fail_json(msg=str(e))
-    module.exit_json(changed=changed, name=name)
+
+    module.exit_json(changed=changed, role=name, new_role=new_role )
 
 
 from ansible.module_utils.basic import *
